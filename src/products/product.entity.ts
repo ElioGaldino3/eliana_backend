@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity()
-export class Client extends BaseEntity {
+export class Product extends BaseEntity {
 
   @PrimaryGeneratedColumn()
   id: number
@@ -9,10 +9,10 @@ export class Client extends BaseEntity {
   @Column()
   name: string
 
-  @Column()
-  phone: string
-
-  @Column({ nullable: true })
+  @Column({type: 'real'})
+  value: string
+  
+  @Column({nullable: true})
   photoUrl: string
 
 }
