@@ -10,7 +10,7 @@ export class ClientsService {
 
   constructor(
     @InjectRepository(ClientRepository)
-    private clientRepository: ClientRepository
+    private clientRepository: ClientRepository,
   ) { }
 
   async getClients(): Promise<Client[]> {
