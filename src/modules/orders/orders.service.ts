@@ -33,28 +33,24 @@ export class OrdersService {
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
     const order = new Order()
-    const { dateDelivery, products, clientId, comment } = createOrderDto
+    const { dateDelivery, products, clientId, comment, isRent } = createOrderDto
 
     order.dateDelivery = dateDelivery
     order.products = products
     order.clientId = clientId
     order.comment = comment
+    order.isRent = isRent === "true"
 
     await order.save()
-    order.products = [];
-
 
     products.forEach(async p => {
       const productOrder = new ProductOrder()
       productOrder.orderId = order.id,
-        productOrder.productId = p.productId
+      productOrder.productId = p.productId
       productOrder.amount = p.amount
 
-      await productOrder.save()
-
-      order.products.push(productOrder)
+      await productOrder.save()  
     })
-
     return order
   }
 
@@ -71,6 +67,7 @@ export class OrdersService {
     if (updateOrderDto.products) { order.products = updateOrderDto.products }
     if (updateOrderDto.clientId) { order.clientId = updateOrderDto.clientId }
     if (updateOrderDto.comment) { order.comment = updateOrderDto.comment }
+    if (updateOrderDto.isRent) { order.isRent = updateOrderDto.isRent === "true" }
 
     await order.save()
     return order

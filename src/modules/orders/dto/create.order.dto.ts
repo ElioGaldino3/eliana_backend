@@ -5,7 +5,9 @@ export class CreateOrderDto {
   @IsNotEmpty()
   dateDelivery: string
   comment: string
+
+  @IsNotEmpty()
   clientId: number
   products: ProductOrder[]
-  isRent: boolean
+  isRent: string
 }

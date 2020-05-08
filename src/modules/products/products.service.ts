@@ -27,11 +27,15 @@ export class ProductsService {
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     const product = new Product()
-    const { name, value, photoUrl } = createProductDto
+    const { name, value, photoUrl, isRent } = createProductDto
 
     product.name = name
     product.value = value
     product.photoUrl = photoUrl
+    product.isRent = isRent === "true"
+
+    console.log(isRent)
+    console.log(product.isRent)
 
     await product.save()
 
@@ -50,6 +54,7 @@ export class ProductsService {
     if (updateProductDto.name) { product.name = updateProductDto.name }
     if (updateProductDto.value) { product.value = updateProductDto.value }
     if (updateProductDto.photoUrl) { product.photoUrl = updateProductDto.photoUrl }
+    if (updateProductDto.isRent) { product.isRent = updateProductDto.isRent === "true" }
 
     await product.save()
     return product

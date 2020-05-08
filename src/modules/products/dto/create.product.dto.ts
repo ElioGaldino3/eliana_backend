@@ -7,5 +7,9 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   value: string
+
+  @IsNotEmpty()
+  isRent: string
+  
   photoUrl: string
 }

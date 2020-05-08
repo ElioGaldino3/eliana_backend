@@ -16,6 +16,9 @@ export class Product extends BaseEntity {
   @Column({nullable: true})
   photoUrl: string
 
+  @Column()
+  isRent: boolean
+
   @OneToMany(() => ProductOrder, productOrder => productOrder.product)
   @JoinColumn()
   productOrder: ProductOrder[];

@@ -27,6 +27,6 @@ export class Order extends BaseEntity {
   @Column()
   clientId: number
 
-  @Column({default: "false"})
+  @Column()
   isRent: boolean
 }
