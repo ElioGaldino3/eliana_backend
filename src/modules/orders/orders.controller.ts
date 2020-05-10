@@ -22,19 +22,32 @@ export class OrdersController {
   }
 
   @Post()
-  @UsePipes(CreateOrderPipe)
   async createOrder(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
     return await this.ordersService.createOrder(createOrderDto)
+  }
+  
+  @Patch('/:id')
+  async deliverOrder(@Param('id', ParseIntPipe) id: number): Promise<Order> {
+    console.log('estou entregando')
+    return await this.ordersService.deliverOrder(id)
   }
 
   @Patch()
   @UsePipes(CreateOrderPipe)
   async updateOrder(@Body() updateOrderDto: UpdateOrderDto): Promise<Order> {
+    console.log('estou atualizando')
     return await this.ordersService.updateOrder(updateOrderDto)
   }
+
 
   @Delete('/:id')
   async deleteOrder(@Param('id') id: number) {
     await this.ordersService.deleteOrder(id)
+  }
+
+  @Post("/debug")
+  async debugar(@Body() body){
+    console.log(body)
+    return body
   }
 }

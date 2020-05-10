@@ -24,9 +24,10 @@ export class Order extends BaseEntity {
   @JoinColumn()
   products: ProductOrder[];
 
-  @Column()
+  @Column({select: false})
   clientId: number
 
   @Column()
   isRent: boolean
+
 }

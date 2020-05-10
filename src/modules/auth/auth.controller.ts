@@ -23,4 +23,10 @@ export class AuthController {
   async getUser(@Param('id', ParseIntPipe) id: number) {
     return this.authService.getUser(id)
   }
+
+  @Get("/debug")
+  async debugar(@Body() body){
+    console.log(body)
+    return body
+  }
 }

@@ -14,7 +14,7 @@ export class ClientsService {
   ) { }
 
   async getClients(): Promise<Client[]> {
-    return this.clientRepository.find()
+    return this.clientRepository.find({order: { name: "ASC" }})
   }
 
   async getClientById(id: number): Promise<Client> {
