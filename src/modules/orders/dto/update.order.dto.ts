@@ -6,5 +6,5 @@ export class UpdateOrderDto {
   comment: string
   clientId: number
   products: ProductOrder[]
-  isRent: string
+  isRent: boolean
 }

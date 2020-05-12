@@ -5,6 +5,7 @@ import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create.order.dto';
 import { UpdateOrderDto } from './dto/update.order.dto';
 import { ProductOrder } from './product.order.entity';
+import { getConnection, getRepository } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
@@ -16,9 +17,9 @@ export class OrdersService {
 
   async getOrders(): Promise<Order[]> {
     const orders = await this.orderRepository.find({
-
+      where: { isDelivery: false },
       relations: ["products", "client"],
-      order: { dateDelivery: "ASC", isDelivery: "DESC" },
+      order: { dateDelivery: "ASC" },
     })
 
     return orders
@@ -61,7 +62,7 @@ export class OrdersService {
   async deleteOrder(id: number): Promise<void> {
     const order = await this.getOrderById(id)
     order.client = null;
-    
+
     order.products.forEach((e) => {
       const productOrder = new ProductOrder();
 
@@ -86,12 +87,46 @@ export class OrdersService {
     const order = await this.getOrderById(updateOrderDto.id)
 
     if (updateOrderDto.dateDelivery) { order.dateDelivery = updateOrderDto.dateDelivery }
-    if (updateOrderDto.products) { order.products = updateOrderDto.products }
     if (updateOrderDto.clientId) { order.clientId = updateOrderDto.clientId }
     if (updateOrderDto.comment) { order.comment = updateOrderDto.comment }
-    if (updateOrderDto.isRent) { order.isRent = updateOrderDto.isRent === "true" }
+    if (updateOrderDto.isRent) { order.isRent = updateOrderDto.isRent }
 
-    await order.save()
+    updateOrderDto.products.forEach(async p => {
+
+      const productOrderRepo = getRepository(ProductOrder);
+
+      const findProduct = await productOrderRepo.findOne(p.id)
+
+      if (findProduct) {
+        if (findProduct.amount != p.amount) {
+          findProduct.amount = p.amount;
+
+          await findProduct.save()
+        }
+      } else {
+        const productOrder = new ProductOrder()
+        productOrder.orderId = order.id
+        productOrder.productId = p.productId
+        productOrder.amount = p.amount
+
+        await productOrder.save()
+      }
+    })
+
+    await getConnection()
+      .createQueryBuilder()
+      .update(Order)
+      .set({
+        dateDelivery: order.dateDelivery,
+        clientId: order.clientId,
+        comment: order.comment,
+        isRent: order.isRent
+      })
+      .where("id = :id", { id: order.id })
+      .execute()
+
+    order.products = updateOrderDto.products;
+    order.clientId = null;
     return order
   }
 }

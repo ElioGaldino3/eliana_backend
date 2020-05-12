@@ -1,10 +1,9 @@
-import { Controller, Get, Param, ParseIntPipe, Post, Body, Patch, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Post, Body, Patch, Delete, UseGuards } from '@nestjs/common';
 import { ClientsService } from './clients.service'
 import { Client } from './client.entity';
 import { CreateClientDto } from './dto/create.client.dto';
 import { UpdateClientDto } from './dto/update.client.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('clients')
 @UseGuards(AuthGuard())
@@ -36,15 +35,4 @@ export class ClientsController {
     return this.clientsService.deleteClient(id)
   }
 
-  @Post('/:id')
-  @UseInterceptors(
-    FileInterceptor('clients', {dest: '/uploads/clients'}),
-  )
-  async uploadedFile(@UploadedFile() file: any) {
-    const response = {
-      originalname: file.originalname,
-      filename: file.filename,
-    };
-    return response;
-  }
 }
