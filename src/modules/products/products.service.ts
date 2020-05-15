@@ -34,7 +34,7 @@ export class ProductsService {
     product.name = name
     product.value = value
     product.photoUrl = photoUrl
-    product.isRent = isRent === "true"
+    product.isRent = isRent
 
     console.log(isRent)
     console.log(product.isRent)
@@ -56,7 +56,7 @@ export class ProductsService {
     if (updateProductDto.name) { product.name = updateProductDto.name }
     if (updateProductDto.value) { product.value = updateProductDto.value }
     if (updateProductDto.photoUrl) { product.photoUrl = updateProductDto.photoUrl }
-    if (updateProductDto.isRent) { product.isRent = updateProductDto.isRent === "true" }
+    if (updateProductDto.isRent) { product.isRent = updateProductDto.isRent }
 
     await product.save()
     return product

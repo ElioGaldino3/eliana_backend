@@ -16,17 +16,29 @@ export class OrdersService {
   ) { }
 
   async getOrders(): Promise<Order[]> {
-    const orders = await this.orderRepository.find({
-      where: { isDelivery: false },
-      relations: ["products", "client"],
-      order: { dateDelivery: "ASC" },
-    })
+    const orders = await getConnection()
+      .getRepository(Order)
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.products', 'product_order')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('product_order.product', "product")
+      .orderBy('order.dateDelivery', 'ASC')
+      .where("order.isDelivery = :isDelivery", { isDelivery: false })
+      .getMany()
 
     return orders
   }
 
   async getOrderById(id: number): Promise<Order> {
-    const found = await this.orderRepository.findOne(id, { relations: ["products", "client"] })
+    const found = await getConnection()
+      .getRepository(Order)
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.products', 'product_order')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('product_order.product', "product")
+      .where("order.isDelivery = :isDelivery", { isDelivery: false })
+      .andWhere("order.id = :id", { id: id })
+      .getOne()
 
 
     if (!found) {
@@ -95,8 +107,10 @@ export class OrdersService {
 
       const productOrderRepo = getRepository(ProductOrder);
 
-      const findProduct = await productOrderRepo.findOne(p.id)
-
+      const findProduct = await productOrderRepo.findOne({
+        where: { id: p.id }
+      })
+      console.log(findProduct)
       if (findProduct) {
         if (findProduct.amount != p.amount) {
           findProduct.amount = p.amount;

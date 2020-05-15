@@ -12,7 +12,7 @@ export class UpdateProductDto {
   value: string
 
   @IsNotEmpty()
-  isRent: string
+  isRent: boolean
   
   photoUrl: string
 }

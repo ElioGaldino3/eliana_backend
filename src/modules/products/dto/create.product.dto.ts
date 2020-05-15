@@ -9,7 +9,7 @@ export class CreateProductDto {
   value: string
 
   @IsNotEmpty()
-  isRent: string
+  isRent: boolean
   
   photoUrl: string
 }
