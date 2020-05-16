@@ -1,7 +1,7 @@
 import { Order } from "./order.entity";
-var moment = require('moment');
-var PDFDocument = require('pdfkit');
-var fs = require('fs');
+import PDFDocument = require("pdfkit");
+import { createWriteStream } from 'fs';
+import moment = require('moment')
 
 
 export default (order: Order) => {
@@ -10,22 +10,18 @@ export default (order: Order) => {
       size: "a4"
     });
     try {
-      var ws = fs.createWriteStream(`public/rent-pdf/${order.id}.pdf`);
+      const ws = createWriteStream(`public/rent-pdf/${order.id}.pdf`);
       doc.pipe(ws);
       const valorTotal = order.products.reduce((total, product) => total += !product.product.isRent ? product.amount * parseFloat(product.product.value) : 0, 0);
       const locatario = order.client.name;
       const locatarioCpf = "000.000.234-63";
       const locador = "Eliana Luiza Vieira Galdino";
       const locadorCpf = "132.117.334-01";
-      const dateNow = new Date();
-      moment.locale('pt-BR');
-      const day = moment(dateNow).format('DD');
-      const month = moment(dateNow).format('MMMM');
-      const year = moment(dateNow).format('YYYY');
-      const dateRent = new Date(order.dateDelivery);
-      const dayRent = moment(dateRent).format('DD');
-      const monthRent = moment(dateRent).format('MMMM');
-      const yearRent = moment(dateRent).format('YYYY');
+
+      moment.locale('pt-BR')
+      const dateNow = moment().format("LL")
+      const dateRent = moment(order.dateDelivery).format("LL")
+
       let produtos = "";
       order.products.forEach(product => {
         if (product.product.isRent) {
@@ -40,14 +36,14 @@ export default (order: Order) => {
         align: 'justify'
       });
       doc.fontSize(12).text("                                    ");
-      doc.fontSize(12).text(`O presente instrumento tem por objetivo e prestação de serviços profissionais de decoração para evento, a ser desenvolvido de acordo com as especificações constantes deste contrato, na data de ${day} de ${month} de ${year}.`, {
+      doc.fontSize(12).text(`O presente instrumento tem por objetivo e prestação de serviços profissionais de decoração para evento, a ser desenvolvido de acordo com as especificações constantes deste contrato, na data de ${dateNow}.`, {
         align: 'justify'
       });
       doc.fontSize(12).text("                                    ");
       doc.fontSize(14).text(`A locação dos itens abaixo descritos.`);
       doc.fontSize(12).text(produtos);
       doc.fontSize(12).text("                                    ");
-      doc.fontSize(12).text(`O evento se realizará ${dayRent} de ${monthRent} de ${yearRent}, endereço Rua //TODO AINDA VOU COLOCAR, nº ____ Cidade _______________ às ___:00 hrs.`, {
+      doc.fontSize(12).text(`O evento se realizará ${dateRent}, endereço Rua //TODO AINDA VOU COLOCAR, nº ____ Cidade _______________ às ___:00 hrs.`, {
         align: 'justify'
       });
       doc.fontSize(12).text("                                    ");
