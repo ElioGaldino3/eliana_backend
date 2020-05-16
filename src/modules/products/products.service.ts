@@ -36,9 +36,6 @@ export class ProductsService {
     product.photoUrl = photoUrl
     product.isRent = isRent
 
-    console.log(isRent)
-    console.log(product.isRent)
-
     await product.save()
 
     return product
