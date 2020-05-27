@@ -5,12 +5,12 @@ import { typeOrmConfig } from './config/typeorm.config'
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { BillingModule } from './modules/billing/billing.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmConfig),
     ClientsModule,
     ProductsModule,
