@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderRepository } from './order.repository';
 import { Order } from './order.entity';
@@ -6,9 +6,13 @@ import { CreateOrderDto } from './dto/create.order.dto';
 import { UpdateOrderDto } from './dto/update.order.dto';
 import { ProductOrder } from './product.order.entity';
 import { getConnection, getRepository } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
+import { writeFile } from 'fs';
+import moment = require('moment');
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
 
   constructor(
     @InjectRepository(OrderRepository)
@@ -142,5 +146,18 @@ export class OrdersService {
     order.products = updateOrderDto.products;
     order.clientId = null;
     return order
+  }
+
+  @Cron('* * 3 * * 1-6')
+  async handleBackup() {
+    const orders = JSON.stringify(await this.getOrders());
+    const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.orders.json'
+    writeFile(path, orders, 'utf8', err => {
+      if (err) {
+        this.logger.error(err);
+      } else {
+        this.logger.log("bfeg :D");
+      }
+    });
   }
 }
