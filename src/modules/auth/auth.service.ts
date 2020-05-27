@@ -29,6 +29,9 @@ export class AuthService {
 
       return { user: { ...user.toJSON(), token } };
     } catch (err) {
+      if (err.response.error === "Conflict") {
+        throw new ConflictException('Username has already been taken');
+      }
       throw new InternalServerErrorException();
     }
   }
