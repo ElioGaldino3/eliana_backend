@@ -148,7 +148,7 @@ export class OrdersService {
     return order
   }
 
-  @Cron('* * 3 * * 1-6')
+  @Cron('1 1 3 * * 1-6')
   async handleBackup() {
     const orders = JSON.stringify(await this.getOrders());
     const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.orders.json'
