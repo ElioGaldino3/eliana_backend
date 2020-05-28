@@ -59,7 +59,7 @@ export class ClientsService {
     await client.save()
   }
 
-  @Cron('* * 3 * * 1-6')
+  @Cron('1 1 3 * * 1-6')
   async handleBackup() {
     const clients = JSON.stringify(await this.getClients());
     const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.clients.json'
