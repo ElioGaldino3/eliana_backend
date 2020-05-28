@@ -38,7 +38,7 @@ export class BillingService {
     await billing.remove()
   }
 
-  @Cron('* * 3 * * 1-6')
+  @Cron('1 1 3 * * 1-6')
   async handleBackup() {
     const billings = JSON.stringify(await this.getBillings());
     const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.billings.json'
