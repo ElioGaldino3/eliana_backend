@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductRepository } from './product.repository';
 import { Product } from './product.entity';
@@ -11,66 +16,98 @@ import moment = require('moment');
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
-  constructor(@InjectRepository(ProductRepository)
-  private productRepository: ProductRepository) { }
+  constructor(
+    @InjectRepository(ProductRepository)
+    private productRepository: ProductRepository,
+  ) {}
 
   async getProducts(): Promise<Product[]> {
     return this.productRepository.find({
-      order: { name: "ASC" }
-    })
+      order: { name: 'ASC' },
+    });
   }
 
   async getProductById(id: number): Promise<Product> {
-    const found = await this.productRepository.findOne(id)
+    const found = await this.productRepository.findOne(id);
 
     if (!found) {
-      throw new NotFoundException('Produto com o id "' + id + '" não foi encontrado')
+      throw new NotFoundException(
+        'Produto com o id "' + id + '" não foi encontrado',
+      );
     }
 
-    return found
+    return found;
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
-    const product = new Product()
-    const { name, value, photoUrl, isRent } = createProductDto
+    const product = new Product();
+    const { name, value, photoUrl, isRent } = createProductDto;
 
-    product.name = name
-    product.value = value
-    product.photoUrl = photoUrl
-    product.isRent = isRent
+    try {
+      if (value.includes(',')) {
+        throw new BadRequestException('Is not float number');
+      } else {
+        parseFloat(value);
+      }
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
 
-    await product.save()
+    product.name = name;
+    product.value = value;
+    product.photoUrl = photoUrl;
+    product.isRent = isRent;
 
-    return product
+    await product.save();
+
+    return product;
   }
 
   async deleteProduct(id: number): Promise<void> {
-    const product = await this.getProductById(id)
+    const product = await this.getProductById(id);
 
-    await product.remove()
+    await product.remove();
   }
 
   async updateProduct(updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.getProductById(updateProductDto.id)
+    const product = await this.getProductById(updateProductDto.id);
 
-    if (updateProductDto.name) { product.name = updateProductDto.name }
-    if (updateProductDto.value) { product.value = updateProductDto.value }
-    if (updateProductDto.photoUrl) { product.photoUrl = updateProductDto.photoUrl }
-    if (updateProductDto.isRent) { product.isRent = updateProductDto.isRent }
+    if (updateProductDto.name) {
+      product.name = updateProductDto.name;
+    }
+    if (updateProductDto.value) {
+      try {
+        if (updateProductDto.value.includes(',')) {
+          throw new BadRequestException('Is not float number');
+        } else {
+          parseFloat(updateProductDto.value);
+        }
+      } catch (err) {
+        throw new BadRequestException(err.message);
+      }
+      product.value = updateProductDto.value;
+    }
+    if (updateProductDto.photoUrl) {
+      product.photoUrl = updateProductDto.photoUrl;
+    }
+    if (updateProductDto.isRent) {
+      product.isRent = updateProductDto.isRent;
+    }
 
-    await product.save()
-    return product
+    await product.save();
+    return product;
   }
 
   @Cron('1 1 3 * * 1-6')
   async handleBackup() {
     const products = JSON.stringify(await this.getProducts());
-    const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.products.json'
+    const path =
+      process.env.BACKUP_PATH + `/${moment().format()}` + '.products.json';
     writeFile(path, products, 'utf8', err => {
       if (err) {
         this.logger.error(err);
       } else {
-        this.logger.log("bfeg :D");
+        this.logger.log('bfeg :D');
       }
     });
   }

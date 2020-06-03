@@ -1,5 +1,6 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 'typeorm'
-import { Order } from 'src/modules/orders/order.entity'
+import { Order } from '../orders/order.entity'
+
 
 @Entity()
 export class Client extends BaseEntity {

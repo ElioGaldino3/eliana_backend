@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateBillingDTO } from './billing.dto';
 
 @Controller('billings')
-@UseGuards(AuthGuard())
+@UseGuards(AuthGuard('jwt'))
 export class BillingController {
   constructor(
     private billingService: BillingService,

@@ -3,14 +3,11 @@ import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { BillingRepository } from './billing.repository';
+import { Billing } from './billing.entity';
 
 @Module({
   controllers: [BillingController],
   providers: [BillingService],
-  imports: [
-    TypeOrmModule.forFeature([BillingRepository]),
-    AuthModule
-  ]
+  imports: [AuthModule,TypeOrmModule.forFeature([Billing])],
 })
 export class BillingModule {}
