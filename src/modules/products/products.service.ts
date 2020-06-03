@@ -9,9 +9,6 @@ import { ProductRepository } from './product.repository';
 import { Product } from './product.entity';
 import { CreateProductDto } from './dto/create.product.dto';
 import { UpdateProductDto } from './dto/update.product.dto';
-import { Cron } from '@nestjs/schedule';
-import { writeFile } from 'fs';
-import moment = require('moment');
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
@@ -96,19 +93,5 @@ export class ProductsService {
 
     await product.save();
     return product;
-  }
-
-  @Cron('1 1 3 * * 1-6')
-  async handleBackup() {
-    const products = JSON.stringify(await this.getProducts());
-    const path =
-      process.env.BACKUP_PATH + `/${moment().format()}` + '.products.json';
-    writeFile(path, products, 'utf8', err => {
-      if (err) {
-        this.logger.error(err);
-      } else {
-        this.logger.log('bfeg :D');
-      }
-    });
   }
 }

@@ -59,17 +59,4 @@ export class ClientsService {
     await client.save()
   }
 
-  @Cron('1 1 3 * * 1-6')
-  async handleBackup() {
-    const clients = JSON.stringify(await this.getClients());
-    const path = process.env.BACKUP_PATH + `/${moment().format()}` + '.clients.json'
-    writeFile(path, clients, 'utf8', err => {
-      if (err) {
-        this.logger.error(err);
-      } else {
-        this.logger.log("bfeg :D");
-      }
-    });
-  }
-
 }
