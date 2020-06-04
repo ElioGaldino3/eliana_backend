@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { AuthPayload } from './dtos/user.dto';
 import { UserEntity } from './entities/user.entity';
 
-require("dotenv").config()
+import '../../bootstrap';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

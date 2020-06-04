@@ -1,12 +1,20 @@
-import { Controller, ValidationPipe, Body, Post, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  ValidationPipe,
+  Body,
+  Post,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDTO, LoginDTO } from './dtos/user.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
-
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @Post()
   register(@Body(ValidationPipe) credentials: RegisterDTO) {
@@ -18,15 +26,9 @@ export class AuthController {
     return this.authService.login(credentials);
   }
 
-  @Get("/:id")
-  @UseGuards(AuthGuard())
-  async getUser(@Param('id', ParseIntPipe) id: number) {
-    return this.authService.getUser(id)
-  }
-
-  @Get("/debug")
-  async debugar(@Body() body){
-    console.log(body)
-    return body
+  @Get()
+  @UseGuards(AuthGuard('jwt'))
+  async getUser(@Req() req: any): Promise<UserEntity> {
+    return this.authService.getUser(req.user.id);
   }
 }

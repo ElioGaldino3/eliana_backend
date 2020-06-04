@@ -7,7 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './jwt.strategy';
 import { UserEntity } from './entities/user.entity';
 
-require("dotenv").config()
+import '../../bootstrap';
 
 @Module({
   imports: [
