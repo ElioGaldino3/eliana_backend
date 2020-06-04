@@ -73,17 +73,9 @@ export class ProductsService {
       product.name = updateProductDto.name;
     }
     if (updateProductDto.value) {
-      try {
-        if (updateProductDto.value.includes(',')) {
-          throw new BadRequestException('Is not float number');
-        } else {
-          parseFloat(updateProductDto.value);
-        }
-      } catch (err) {
-        throw new BadRequestException(err.message);
-      }
       product.value = updateProductDto.value;
     }
+
     if (updateProductDto.photoUrl) {
       product.photoUrl = updateProductDto.photoUrl;
     }
