@@ -5,8 +5,6 @@ import { Billing } from './billing.entity';
 import { Repository } from 'typeorm';
 @Injectable()
 export class BillingService {
-  private readonly logger = new Logger(BillingService.name);
-
   constructor(
     @InjectRepository(Billing)
     private readonly billingRepo: Repository<Billing>,
