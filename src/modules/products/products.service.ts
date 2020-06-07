@@ -38,21 +38,19 @@ export class ProductsService {
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     const product = new Product();
-    const { name, value, photoUrl, isRent } = createProductDto;
-
+    const { name, value, isRent } = createProductDto;
     try {
-      if (value.includes(',')) {
+      if (value.toString().includes(',')) {
         throw new BadRequestException('Is not float number');
       } else {
-        parseFloat(value);
+        parseFloat(value.toString());
       }
     } catch (err) {
       throw new BadRequestException(err.message);
     }
 
     product.name = name;
-    product.value = value;
-    product.photoUrl = photoUrl;
+    product.value = value || "0.0";
     product.isRent = isRent || false;
 
     await product.save();
