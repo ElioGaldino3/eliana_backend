@@ -53,7 +53,7 @@ export class ProductsService {
     product.name = name;
     product.value = value;
     product.photoUrl = photoUrl;
-    product.isRent = isRent;
+    product.isRent = isRent || false;
 
     await product.save();
 
@@ -66,18 +66,17 @@ export class ProductsService {
     await product.remove();
   }
 
-  async updateProduct(updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.getProductById(updateProductDto.id);
+  async updateProduct(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    const product = await this.getProductById(id);
 
     if (updateProductDto.name) {
       product.name = updateProductDto.name;
     }
     if (updateProductDto.value) {
       product.value = updateProductDto.value;
-    }
-
-    if (updateProductDto.photoUrl) {
-      product.photoUrl = updateProductDto.photoUrl;
     }
     if (updateProductDto.isRent) {
       product.isRent = updateProductDto.isRent;

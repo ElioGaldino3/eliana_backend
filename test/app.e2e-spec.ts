@@ -3,10 +3,15 @@ import { RegisterDTO, LoginDTO } from 'src/modules/auth/dtos/user.dto';
 import { Client } from 'pg';
 import { CreateClientDto } from 'src/modules/clients/dto/create.client.dto';
 import { UpdateClientDto } from 'src/modules/clients/dto/update.client.dto';
+import { CreateProductDto } from 'src/modules/products/dto/create.product.dto';
+import { UpdateProductDto } from 'src/modules/products/dto/update.product.dto';
+import { CreateBillingDTO } from 'src/modules/billing/billing.dto';
 
 const app = 'http://localhost:4565';
 
 let token = '';
+let clientForTestOrder = 1;
+let productForTestOrder = 1;
 
 const conDB = new Client({
   user: 'postgres',
@@ -124,6 +129,7 @@ describe('-- CLIENT MODULE --', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Product Test' })
       .expect(({ body }) => {
+        clientForTestOrder = body.id;
         expect(body.name).toEqual('Product Test');
       });
   });
@@ -139,15 +145,15 @@ describe('-- CLIENT MODULE --', () => {
     return request(app)
       .get('/clients')
       .set('Authorization', `Bearer ${token}`)
-      .expect(({body}) => {
+      .expect(({ body }) => {
         expect(body.length >= 1).toEqual(true);
       });
-  })
+  });
 
   it('should update client', () => {
     const updateClient: UpdateClientDto = {
-      name: 'NewName'
-    }
+      name: 'NewName',
+    };
 
     return request(app)
       .patch(`/clients/${clientId}`)
@@ -155,8 +161,267 @@ describe('-- CLIENT MODULE --', () => {
       .send(updateClient)
       .expect(200);
   });
+
+  it('should delete client', () => {
+    return request(app)
+      .delete(`/clients/${clientId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
 });
+
+describe('-- PRODUCT MODULE --', () => {
+  let productId = 1;
+
+  it('should create a new product', () => {
+    const newProduct: CreateProductDto = {
+      name: 'Product Name',
+      value: '1.25',
+      isRent: false,
+    };
+
+    return request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newProduct)
+      .expect(201)
+      .expect(({ body }) => {
+        productId = body.id;
+        expect(body.name).toEqual(newProduct.name);
+      });
+  });
+
+  it('should create product without isRent', () => {
+    return request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'New Product Name', value: '1.25' })
+      .expect(201)
+      .expect(({ body }) => {
+        productForTestOrder = body.id;
+        expect(body.name).toEqual('New Product Name');
+      });
+  });
+
+  it('should create a new user with invalid number', () => {
+    const newProduct: CreateProductDto = {
+      name: 'Product Name',
+      value: '1,25',
+      isRent: false,
+    };
+
+    return request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newProduct)
+      .expect(400);
+  });
+
+  it('should create a new user without value', () => {
+    return request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Test' })
+      .expect(400);
+  });
+
+  it('should create a new user without data', () => {
+    return request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
+  });
+
+  it('should get product list', () => {
+    return request(app)
+      .get('/products')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.length >= 1).toEqual(true);
+      });
+  });
+
+  it('should update product', () => {
+    const updatedProduct: UpdateProductDto = {
+      name: 'Test Product Name',
+    };
+
+    return request(app)
+      .patch(`/products/${productId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(updatedProduct)
+      .expect(200);
+  });
+
+  it('should delete product', () => {
+    return request(app)
+      .delete(`/products/${productId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+});
+
+describe('-- ORDER MODULE --', () => {
+  let orderId = 1;
+  let orderIdForDelete = 2;
+  it('should create a new order', () => {
+    const newOrder = {
+      dateDelivery: '2020-11-03',
+      comment: 'test coment',
+      clientId: clientForTestOrder,
+      products: [{ productId: productForTestOrder, amount: 1 }],
+      isRent: 'false',
+    };
+
+    return request(app)
+      .post('/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newOrder)
+      .expect(201)
+      .expect(({ body }) => {
+        orderId = body.id;
+        expect(body.products.length >= 1).toEqual(true);
+        expect(body.clientId).toEqual(clientForTestOrder);
+        expect(body.id).toBeDefined();
+      });
+  });
+
+  it('should create a new order without isRent', () => {
+    const newOrder = {
+      dateDelivery: '2020-11-03',
+      comment: 'test coment',
+      clientId: clientForTestOrder,
+      products: [{ productId: productForTestOrder, amount: 1 }],
+    };
+
+    return request(app)
+      .post('/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newOrder)
+      .expect(201)
+      .expect(({ body }) => {
+        orderIdForDelete = body.id;
+        expect(body.isRent).toEqual(false);
+      });
+  });
+
+  it('should update order', () => {
+    const updatedOrder = {
+      dateDelivery: '2020-04-04',
+      comment: 'update comment',
+      //clientId: clientForTestOrder
+      products: [{ productId: productForTestOrder, amount: 2 }],
+      isRent: true,
+    };
+
+    return request(app)
+      .patch(`/orders/${orderId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(updatedOrder)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.products[0].amount).toEqual(2);
+        expect(body.client.id).toEqual(clientForTestOrder);
+        expect(body.dateDelivery).toEqual('2020-04-04');
+        expect(body.comment).toEqual('update comment');
+        expect(body.id).toBeDefined();
+      });
+  });
+
+  it('should list of orders', () => {
+    return request(app)
+      .get(`/orders`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.length >= 1).toEqual(true);
+      });
+  });
+
+  it('should deliver order', () => {
+    return request(app)
+      .patch(`/orders/${orderId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.isDelivery).toEqual(true);
+      });
+  });
+
+  it('should delete order', () => {
+    return request(app)
+      .delete(`/orders/${orderIdForDelete}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+});
+
+describe('-- BILLING MODULE --', () => {
+  let billingId = 1;
+
+  it('should create a new billing', () => {
+    const newBilling: CreateBillingDTO = {
+      content: 'content',
+      value: 1.25,
+    };
+
+    return request(app)
+      .post('/billings')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newBilling)
+      .expect(201)
+      .expect(({ body }) => {
+        billingId = body.id;
+        expect(body.content).toEqual(newBilling.content);
+      });
+  });
+
+  it('should create billing without content', () => {
+    return request(app)
+      .post('/billings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ value: 1.25 })
+      .expect(201)
+      .expect(({ body }) => {
+        expect(body.value).toEqual("1.25");
+      });
+  });
+
+  it('should create a new billing without value', () => {
+    return request(app)
+      .post('/billings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: 'Test' })
+      .expect(400);
+  });
+
+  it('should create a new billing without data', () => {
+    return request(app)
+      .post('/billings')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
+  });
+
+  it('should get billing list', () => {
+    return request(app)
+      .get('/billings')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.length >= 1).toEqual(true);
+      });
+  });
+
+  it('should delete billing', () => {
+    return request(app)
+      .delete(`/billings/${billingId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+});
+
 
 afterAll(async () => {
   conDB.end();
-})
+});

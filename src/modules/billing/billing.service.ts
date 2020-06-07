@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateBillingDTO } from './billing.dto';
 import { Billing } from './billing.entity';
@@ -15,6 +15,9 @@ export class BillingService {
   }
 
   async createBilling(billingDto: CreateBillingDTO) {
+    if(!billingDto.value){
+      throw new BadRequestException('Billing value is required');
+    }
     const billing = new Billing()
 
     billing.content = billingDto.content

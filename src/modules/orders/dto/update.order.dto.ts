@@ -1,10 +1,9 @@
-import { ProductOrder } from "../product.order.entity"
+import { ProductOrder } from '../product.order.entity';
 
 export class UpdateOrderDto {
-  id:number
-  dateDelivery: string
-  comment: string
-  clientId: number
-  products: ProductOrder[]
-  isRent: boolean
+  dateDelivery: string;
+  comment: string;
+  clientId: number;
+  products: ProductOrder[];
+  isRent: boolean;
 }

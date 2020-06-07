@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create.order.dto';
 import { UpdateOrderDto } from './dto/update.order.dto';
 import { ProductOrder } from './product.order.entity';
 import { getConnection, getRepository } from 'typeorm';
+import { Product } from '../products/product.entity';
 
 @Injectable()
 export class OrdersService {
-
   async getOrders(): Promise<Order[]> {
     const orders = await getConnection()
       .getRepository(Order)
@@ -58,30 +62,44 @@ export class OrdersService {
     order.comment = comment;
     order.isRent = isRent === 'true';
 
-    await order.save();
+    let productNotFound = false;
+    const productRepo = getRepository(Product);
 
-    products.forEach(async p => {
-      const productOrder = new ProductOrder();
-      (productOrder.orderId = order.id), (productOrder.productId = p.productId);
-      productOrder.amount = p.amount;
+    for (let index = 0; index < products.length; index++) {
+      const p = products[index];
+      const product = await productRepo.findOne({ where: { id: p.productId } });
+      if (!product) {
+        productNotFound = true;
+      }
+    }
+    if (!productNotFound) {
+      await order.save();
 
-      await productOrder.save();
-    });
-    return order;
+      for (let index = 0; index < products.length; index++) {
+        const p = products[index];
+
+        const productOrder = new ProductOrder();
+        productOrder.orderId = order.id;
+        productOrder.productId = p.productId;
+        productOrder.amount = p.amount;
+
+        await productOrder.save();
+      }
+
+      return order;
+    } else {
+      throw new BadRequestException('Product Order Not Found');
+    }
   }
 
   async deleteOrder(id: number): Promise<void> {
     const order = await this.getOrderById(id);
     order.client = null;
-
-    order.products.forEach(e => {
-      const productOrder = new ProductOrder();
-
-      productOrder.id = e.id;
-
-      productOrder.remove();
-    });
-
+    const products = await (getRepository(ProductOrder)).find();
+    for (let index = 0; index < products.length; index++) {
+      const p = products[index];
+      await p.remove();
+    }
     order.products = null;
     await order.remove();
   }
@@ -94,36 +112,44 @@ export class OrdersService {
     return order;
   }
 
-  async updateOrder(updateOrderDto: UpdateOrderDto): Promise<Order> {
-    const order = await this.getOrderById(updateOrderDto.id);
+  async updateOrder(
+    id: number,
+    updateOrderDto: UpdateOrderDto,
+  ): Promise<Order> {
+    const order = await this.getOrderById(id);
 
-    if (updateOrderDto.dateDelivery) {
-      order.dateDelivery = updateOrderDto.dateDelivery;
-    }
-    if (updateOrderDto.clientId) {
-      order.clientId = updateOrderDto.clientId;
-    }
-    if (updateOrderDto.comment) {
-      order.comment = updateOrderDto.comment;
-    }
-    if (updateOrderDto.isRent) {
-      order.isRent = updateOrderDto.isRent;
+    order.dateDelivery = updateOrderDto.dateDelivery || order.dateDelivery;
+
+    order.clientId = updateOrderDto.clientId || order.client.id;
+
+    order.comment = updateOrderDto.comment || order.comment;
+
+    order.isRent = updateOrderDto.isRent || order.isRent;
+
+    let productNotFound = false;
+    const productRepo = getRepository(Product);
+
+    for (let index = 0; index < updateOrderDto.products.length; index++) {
+      const p = updateOrderDto.products[index];
+      const product = await productRepo.findOne({ where: { id: p.productId } });
+      if (!product) {
+        productNotFound = true;
+      }
     }
 
-    updateOrderDto.products.forEach(async p => {
+    if (!productNotFound) {
       const productOrderRepo = getRepository(ProductOrder);
-
-      const findProduct = await productOrderRepo.findOne({
-        where: { id: p.id },
+      const productsOrder = await productOrderRepo.find({
+        where: { orderId: id },
       });
-      console.log(findProduct);
-      if (findProduct) {
-        if (findProduct.amount != p.amount) {
-          findProduct.amount = p.amount;
+      for (let index = 0; index < productsOrder.length; index++) {
+        const p = productsOrder[index];
 
-          await findProduct.save();
-        }
-      } else {
+        p.remove();
+      }
+      for (let index = 0; index < updateOrderDto.products.length; index++) {
+        const p = updateOrderDto.products[index];
+
         const productOrder = new ProductOrder();
         productOrder.orderId = order.id;
         productOrder.productId = p.productId;
@@ -131,22 +157,24 @@ export class OrdersService {
 
         await productOrder.save();
       }
-    });
 
-    await getConnection()
-      .createQueryBuilder()
-      .update(Order)
-      .set({
-        dateDelivery: order.dateDelivery,
-        clientId: order.clientId,
-        comment: order.comment,
-        isRent: order.isRent,
-      })
-      .where('id = :id', { id: order.id })
-      .execute();
+      await getConnection()
+        .createQueryBuilder()
+        .update(Order)
+        .set({
+          dateDelivery: order.dateDelivery,
+          clientId: order.clientId,
+          comment: order.comment,
+          isRent: order.isRent,
+        })
+        .where('id = :id', { id: order.id })
+        .execute();
 
-    order.products = updateOrderDto.products;
-    order.clientId = null;
-    return order;
+      order.products = updateOrderDto.products;
+      order.clientId = null;
+      return order;
+    } else {
+      throw new BadRequestException('Product Not Found');
+    }
   }
 }
