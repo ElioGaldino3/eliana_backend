@@ -61,15 +61,9 @@ export class ClientsService {
   ): Promise<void> {
     const client = await this.getClientById(id);
 
-    if (updateClientDto.name) {
-      client.name = updateClientDto.name;
-    }
-    if (updateClientDto.phone) {
-      client.phone = updateClientDto.phone;
-    }
-    if (updateClientDto.photoUrl) {
-      client.photoUrl = updateClientDto.photoUrl;
-    }
+    client.name = updateClientDto.name || client.name;
+
+    client.phone = updateClientDto.phone || client.phone;
 
     await client.save();
   }
