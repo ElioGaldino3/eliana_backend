@@ -7,8 +7,8 @@ export class CreateClientDto{
   name: string;
 
   @IsString()
-  phone: string
+  phone?: string
 
   @IsString()
-  photoUrl: string
+  photoUrl?: string
 }

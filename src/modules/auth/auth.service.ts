@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  InternalServerErrorException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,29 +13,33 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-
   constructor(
-    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-    private jwtService: JwtService
-  ) { }
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
+    private jwtService: JwtService,
+  ) {}
 
   async register(credentials: RegisterDTO) {
     try {
       const user = this.userRepo.create(credentials);
 
-      const haveUser = await this.userRepo.findOne({ username: user.username })
+      const haveUser = await this.userRepo.findOne({ username: user.username });
       if (haveUser) {
         throw new ConflictException('Username has already been taken');
       }
 
       await user.save();
 
-      const payload = { id: user.id, username: user.username, isAuth: user.isAuth }
-      const token = this.jwtService.sign(payload)
+      const payload = {
+        id: user.id,
+        username: user.username,
+        isAuth: user.isAuth,
+      };
+      const token = this.jwtService.sign(payload);
 
       return { user: { ...user.toJSON(), token } };
     } catch (err) {
-      if (err.response.error === "Conflict") {
+      if (err?.response?.error === 'Conflict') {
         throw new ConflictException('Username has already been taken');
       }
       throw new InternalServerErrorException();
@@ -44,8 +54,12 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      const payload = { id: user.id, username: user.username, isAuth: user.isAuth }
-      const token = this.jwtService.sign(payload)
+      const payload = {
+        id: user.id,
+        username: user.username,
+        isAuth: user.isAuth,
+      };
+      const token = this.jwtService.sign(payload);
 
       return { user: { ...user.toJSON(), token } };
     } catch (err) {

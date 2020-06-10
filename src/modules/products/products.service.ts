@@ -38,22 +38,20 @@ export class ProductsService {
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     const product = new Product();
-    const { name, value, photoUrl, isRent } = createProductDto;
-
+    const { name, value, isRent } = createProductDto;
     try {
-      if (value.includes(',')) {
+      if (value.toString().includes(',')) {
         throw new BadRequestException('Is not float number');
       } else {
-        parseFloat(value);
+        parseFloat(value.toString());
       }
     } catch (err) {
       throw new BadRequestException(err.message);
     }
 
     product.name = name;
-    product.value = value;
-    product.photoUrl = photoUrl;
-    product.isRent = isRent;
+    product.value = value || "0.0";
+    product.isRent = isRent || false;
 
     await product.save();
 
@@ -66,18 +64,17 @@ export class ProductsService {
     await product.remove();
   }
 
-  async updateProduct(updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.getProductById(updateProductDto.id);
+  async updateProduct(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    const product = await this.getProductById(id);
 
     if (updateProductDto.name) {
       product.name = updateProductDto.name;
     }
     if (updateProductDto.value) {
       product.value = updateProductDto.value;
-    }
-
-    if (updateProductDto.photoUrl) {
-      product.photoUrl = updateProductDto.photoUrl;
     }
     if (updateProductDto.isRent) {
       product.isRent = updateProductDto.isRent;
